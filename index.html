@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Multi-Currency Expense Tracker for Travelers – track spending in any currency while traveling" />
+  <title>Travel Expense Tracker</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+</head>
+<body>
+  <!-- Header -->
+  <header class="header">
+    <div class="header-left">
+      <div class="logo">
+        <span class="logo-icon">✈️</span>
+        <h1>Travel Expense Tracker</h1>
+      </div>
+      <div class="trip-name-wrap">
+        <input type="text" id="tripName" class="trip-name" value="My Trip" aria-label="Trip name" />
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="base-currency-wrap">
+        <label for="baseCurrency">Base</label>
+        <select id="baseCurrency" aria-label="Base currency">
+          <option value="USD">USD ($)</option>
+          <option value="EUR">EUR (€)</option>
+          <option value="GBP">GBP (£)</option>
+          <option value="INR">INR (₹)</option>
+          <option value="JPY">JPY (¥)</option>
+          <option value="AUD">AUD (A$)</option>
+          <option value="CAD">CAD (C$)</option>
+          <option value="THB">THB (฿)</option>
+          <option value="SGD">SGD (S$)</option>
+          <option value="AED">AED (د.إ)</option>
+        </select>
+      </div>
+      <div class="live-total" id="liveTotal">
+        <span class="total-label">Total</span>
+        <span class="total-value" id="headerTotal">$0.00</span>
+      </div>
+      <button id="themeToggle" class="theme-btn" aria-label="Toggle dark mode" title="Toggle theme">
+        <span class="sun">☀️</span>
+        <span class="moon">🌙</span>
+      </button>
+    </div>
+  </header>
+
+  <main class="main">
+    <!-- Dashboard Summary -->
+    <section class="dashboard" id="dashboard">
+      <div class="stat-card total-card">
+        <div class="stat-label">Total Spent</div>
+        <div class="stat-value" id="totalSpent">$0.00</div>
+        <div class="stat-sub" id="expenseCount">0 expenses</div>
+      </div>
+      <div class="stat-card budget-card">
+        <div class="stat-label">Budget Remaining</div>
+        <div class="stat-value" id="budgetRemaining">—</div>
+        <div class="progress-wrap">
+          <div class="progress-bar" id="budgetProgress"></div>
+        </div>
+      </div>
+      <div class="stat-card avg-card">
+        <div class="stat-label">Daily Average</div>
+        <div class="stat-value" id="dailyAvg">$0.00</div>
+        <div class="stat-sub" id="tripDays">—</div>
+      </div>
+      <div class="stat-card category-card">
+        <div class="stat-label">Top Category</div>
+        <div class="stat-value" id="topCategory">—</div>
+        <div class="stat-sub" id="topCategoryAmount">—</div>
+      </div>
+    </section>
+
+    <!-- Quick Add Form -->
+    <section class="add-section card">
+      <h2 class="section-title">Add Expense</h2>
+      <form id="expenseForm" class="expense-form" autocomplete="off">
+        <div class="form-row">
+          <div class="form-group amount-group">
+            <label for="amount">Amount</label>
+            <input type="number" id="amount" step="0.01" min="0.01" placeholder="0.00" required />
+          </div>
+          <div class="form-group">
+            <label for="currency">Currency</label>
+            <select id="currency" required>
+              <option value="USD">USD ($)</option>
+              <option value="EUR">EUR (€)</option>
+              <option value="GBP">GBP (£)</option>
+              <option value="INR">INR (₹)</option>
+              <option value="JPY">JPY (¥)</option>
+              <option value="AUD">AUD (A$)</option>
+              <option value="CAD">CAD (C$)</option>
+              <option value="THB">THB (฿)</option>
+              <option value="SGD">SGD (S$)</option>
+              <option value="AED">AED (د.إ)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="category">Category</label>
+            <select id="category" required>
+              <option value="Food">🍽️ Food</option>
+              <option value="Transport">🚗 Transport</option>
+              <option value="Accommodation">🏨 Accommodation</option>
+              <option value="Activities">🎯 Activities</option>
+              <option value="Shopping">🛍️ Shopping</option>
+              <option value="Other">📦 Other</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="date">Date</label>
+            <input type="date" id="date" required />
+          </div>
+          <div class="form-group grow">
+            <label for="description">Description</label>
+            <input type="text" id="description" placeholder="e.g. Dinner at local restaurant" maxlength="100" />
+          </div>
+          <div class="form-group">
+            <label for="location">Location / City</label>
+            <input type="text" id="location" placeholder="e.g. Bangkok" maxlength="50" />
+          </div>
+        </div>
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary" id="addBtn">Add Expense</button>
+          <button type="button" class="btn btn-secondary" id="clearFormBtn">Clear</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- Filters & List -->
+    <section class="list-section card">
+      <div class="list-header">
+        <h2 class="section-title">Expenses</h2>
+        <div class="filter-bar">
+          <input type="search" id="searchInput" placeholder="Search..." aria-label="Search expenses" />
+          <select id="filterCategory" aria-label="Filter by category">
+            <option value="all">All Categories</option>
+            <option value="Food">Food</option>
+            <option value="Transport">Transport</option>
+            <option value="Accommodation">Accommodation</option>
+            <option value="Activities">Activities</option>
+            <option value="Shopping">Shopping</option>
+            <option value="Other">Other</option>
+          </select>
+          <select id="filterCurrency" aria-label="Filter by currency">
+            <option value="all">All Currencies</option>
+            <option value="USD">USD</option>
+            <option value="EUR">EUR</option>
+            <option value="GBP">GBP</option>
+            <option value="INR">INR</option>
+            <option value="JPY">JPY</option>
+            <option value="AUD">AUD</option>
+            <option value="CAD">CAD</option>
+            <option value="THB">THB</option>
+            <option value="SGD">SGD</option>
+            <option value="AED">AED</option>
+          </select>
+          <select id="sortBy" aria-label="Sort expenses">
+            <option value="newest">Newest first</option>
+            <option value="oldest">Oldest first</option>
+            <option value="highest">Highest amount</option>
+            <option value="lowest">Lowest amount</option>
+            <option value="category">By category</option>
+          </select>
+        </div>
+      </div>
+
+      <div id="expenseList" class="expense-list" role="list">
+        <!-- Expenses rendered here -->
+      </div>
+
+      <div id="emptyState" class="empty-state hidden">
+        <div class="empty-icon">🗺️</div>
+        <h3>No expenses yet</h3>
+        <p>Add your first expense above to start tracking your trip spending.</p>
+      </div>
+    </section>
+
+    <!-- Tools Grid: Budget + Converter -->
+    <section class="tools-grid">
+      <!-- Budget & Settings -->
+      <div class="card tools-card">
+        <h2 class="section-title">Budget & Settings</h2>
+        <div class="budget-form">
+          <div class="form-group">
+            <label for="totalBudget">Total Trip Budget</label>
+            <div class="input-with-symbol">
+              <span class="currency-symbol" id="budgetSymbol">$</span>
+              <input type="number" id="totalBudget" step="1" min="0" placeholder="e.g. 2000" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="dailyBudget">Daily Budget (optional)</label>
+            <div class="input-with-symbol">
+              <span class="currency-symbol" id="dailyBudgetSymbol">$</span>
+              <input type="number" id="dailyBudget" step="1" min="0" placeholder="e.g. 100" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="tripStart">Trip Start Date</label>
+            <input type="date" id="tripStart" />
+          </div>
+          <div class="form-group">
+            <label for="tripEnd">Trip End Date</label>
+            <input type="date" id="tripEnd" />
+          </div>
+          <button type="button" class="btn btn-primary" id="saveBudgetBtn">Save Budget</button>
+        </div>
+
+        <div class="rates-section">
+          <h3>Exchange Rates <small>(vs Base)</small></h3>
+          <p class="rates-note">Rates are approximate. Edit them for accuracy.</p>
+          <div id="ratesList" class="rates-list">
+            <!-- Rates rendered here -->
+          </div>
+          <button type="button" class="btn btn-secondary btn-sm" id="resetRatesBtn">Reset to Defaults</button>
+        </div>
+      </div>
+
+      <!-- Currency Converter -->
+      <div class="card tools-card">
+        <h2 class="section-title">Quick Converter</h2>
+        <div class="converter">
+          <div class="form-group">
+            <label for="convAmount">Amount</label>
+            <input type="number" id="convAmount" step="0.01" min="0" value="100" />
+          </div>
+          <div class="converter-row">
+            <div class="form-group">
+              <label for="convFrom">From</label>
+              <select id="convFrom">
+                <option value="USD">USD</option>
+                <option value="EUR">EUR</option>
+                <option value="GBP">GBP</option>
+                <option value="INR">INR</option>
+                <option value="JPY">JPY</option>
+                <option value="AUD">AUD</option>
+                <option value="CAD">CAD</option>
+                <option value="THB">THB</option>
+                <option value="SGD">SGD</option>
+                <option value="AED">AED</option>
+              </select>
+            </div>
+            <button type="button" class="swap-btn" id="swapCurrencies" title="Swap currencies">⇄</button>
+            <div class="form-group">
+              <label for="convTo">To</label>
+              <select id="convTo">
+                <option value="EUR">EUR</option>
+                <option value="USD">USD</option>
+                <option value="GBP">GBP</option>
+                <option value="INR">INR</option>
+                <option value="JPY">JPY</option>
+                <option value="AUD">AUD</option>
+                <option value="CAD">CAD</option>
+                <option value="THB">THB</option>
+                <option value="SGD">SGD</option>
+                <option value="AED">AED</option>
+              </select>
+            </div>
+          </div>
+          <div class="conv-result" id="convResult">
+            <span class="conv-value">—</span>
+          </div>
+          <div class="quick-amounts">
+            <button type="button" class="quick-btn" data-amount="10">10</button>
+            <button type="button" class="quick-btn" data-amount="50">50</button>
+            <button type="button" class="quick-btn" data-amount="100">100</button>
+            <button type="button" class="quick-btn" data-amount="500">500</button>
+          </div>
+        </div>
+
+        <div class="export-section">
+          <h3>Export Data</h3>
+          <div class="export-btns">
+            <button type="button" class="btn btn-secondary btn-sm" id="exportJsonBtn">Export JSON</button>
+            <button type="button" class="btn btn-secondary btn-sm" id="exportCsvBtn">Export CSV</button>
+            <button type="button" class="btn btn-danger btn-sm" id="clearAllBtn">Clear All Data</button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <p>Offline-first • Data stored locally on your device • Built for travelers</p>
+  </footer>
+
+  <!-- Toast -->
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <!-- Edit Modal -->
+  <div id="editModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="editModalTitle">
+    <div class="modal-backdrop" data-close></div>
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="editModalTitle">Edit Expense</h2>
+        <button type="button" class="modal-close" data-close aria-label="Close">×</button>
+      </div>
+      <form id="editForm" class="expense-form">
+        <input type="hidden" id="editId" />
+        <div class="form-row">
+          <div class="form-group amount-group">
+            <label for="editAmount">Amount</label>
+            <input type="number" id="editAmount" step="0.01" min="0.01" required />
+          </div>
+          <div class="form-group">
+            <label for="editCurrency">Currency</label>
+            <select id="editCurrency" required>
+              <option value="USD">USD ($)</option>
+              <option value="EUR">EUR (€)</option>
+              <option value="GBP">GBP (£)</option>
+              <option value="INR">INR (₹)</option>
+              <option value="JPY">JPY (¥)</option>
+              <option value="AUD">AUD (A$)</option>
+              <option value="CAD">CAD (C$)</option>
+              <option value="THB">THB (฿)</option>
+              <option value="SGD">SGD (S$)</option>
+              <option value="AED">AED (د.إ)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="editCategory">Category</label>
+            <select id="editCategory" required>
+              <option value="Food">🍽️ Food</option>
+              <option value="Transport">🚗 Transport</option>
+              <option value="Accommodation">🏨 Accommodation</option>
+              <option value="Activities">🎯 Activities</option>
+              <option value="Shopping">🛍️ Shopping</option>
+              <option value="Other">📦 Other</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="editDate">Date</label>
+            <input type="date" id="editDate" required />
+          </div>
+          <div class="form-group grow">
+            <label for="editDescription">Description</label>
+            <input type="text" id="editDescription" maxlength="100" />
+          </div>
+          <div class="form-group">
+            <label for="editLocation">Location</label>
+            <input type="text" id="editLocation" maxlength="50" />
+          </div>
+        </div>
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary">Save Changes</button>
+          <button type="button" class="btn btn-secondary" data-close>Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Confirm Delete Modal -->
+  <div id="deleteModal" class="modal hidden" role="dialog" aria-modal="true">
+    <div class="modal-backdrop" data-close></div>
+    <div class="modal-content modal-sm">
+      <div class="modal-header">
+        <h2>Delete Expense?</h2>
+        <button type="button" class="modal-close" data-close aria-label="Close">×</button>
+      </div>
+      <p class="modal-body-text">This action cannot be undone.</p>
+      <div class="form-actions">
+        <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Delete</button>
+        <button type="button" class="btn btn-secondary" data-close>Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
